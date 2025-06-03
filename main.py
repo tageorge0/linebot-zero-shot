@@ -59,16 +59,13 @@ def callback():
     print("收到 LINE Webhook 請求")
     signature = request.headers['X-Line-Signature']
     body = request.get_data(as_text=True)
-    #Thread(target=safe_handle, args=(body, signature)).start()
-    return 'OK'
-
-# 將 handler.handle 包裝起來
-def safe_handle(body, signature):
     try:
         handler.handle(body, signature)
         print("handler 處理完成")
     except Exception as e:
         print("handler 處理錯誤：", e)
+        abort(400)
+    return 'OK'
 
 # 處理文字訊息（非同步）
 @handler.add(MessageEvent, message=TextMessage)

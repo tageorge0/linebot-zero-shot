@@ -25,8 +25,8 @@ import csv
 import os
 from datetime import datetime
 import requests
-from threading import Thread
 
+app = Flask(__name__)
 configuration = Configuration(access_token='LINE_CHANNEL_ACCESS_TOKEN')
 handler = WebhookHandler("LINE_CHANNEL_SECRET")
 # Hugging Face API 設定
@@ -64,8 +64,6 @@ def classify_text(text):
     except Exception as e:
         print("Hugging Face API 發生錯誤：", e)
         return "無法判斷", 0.0
-
-app = Flask(__name__)
 
 # Webhook
 @app.route("/")

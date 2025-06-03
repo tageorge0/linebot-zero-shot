@@ -27,8 +27,8 @@ from datetime import datetime
 import requests
 
 app = Flask(__name__)
-configuration = Configuration(access_token='LINE_CHANNEL_ACCESS_TOKEN')
-handler = WebhookHandler("LINE_CHANNEL_SECRET")
+configuration = Configuration(access_token=os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
+handler =  WebhookHandler(os.getenv("LINE_CHANNEL_SECRET"))
 # Hugging Face API 設定
 HF_API_URL = "https://api-inference.huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7"
 HF_HEADERS = {"Authorization": f"Bearer {os.getenv('HF_API_TOKEN')}"}

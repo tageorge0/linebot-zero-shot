@@ -56,6 +56,7 @@ def classify_text(text):
 # Webhook callback
 @app.route("/callback", methods=['POST'])
 def callback():
+    print("收到 LINE Webhook 請求")
     signature = request.headers['X-Line-Signature']
     body = request.get_data(as_text=True)
     def background_handle():
@@ -71,6 +72,7 @@ def callback():
 # 處理文字訊息（非同步）
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    print(f"收到使用者輸入：{event.message.text}")
     user_input = event.message.text
     user_id = event.source.user_id
 

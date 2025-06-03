@@ -16,8 +16,8 @@ from threading import Thread
 line_bot_api = LineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
 handler = WebhookHandler(os.getenv("LINE_CHANNEL_SECRET"))
 # Hugging Face API 設定
-HF_API_URL = "https://huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7"
-HF_HEADERS = {"Authorization": f"Bearer {os.getenv("HF_API_TOKEN")}"}
+HF_API_URL = "https://api-inference.huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7"
+HF_HEADERS = {"Authorization": f"Bearer {os.getenv('HF_API_TOKEN')}"}
 
 app = Flask(__name__)
 

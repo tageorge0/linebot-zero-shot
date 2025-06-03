@@ -70,12 +70,8 @@ def callback():
 def handle_message(event):
     user_input = event.message.text
     user_id = event.source.user_id
-    reply_token = event.reply_token
 
-    # 先快速回應 LINE（防止超時）
-    line_bot_api.reply_message(reply_token, TextSendMessage(text="訊息收到！正在分析中..."))
-
-    # 背景進行分析與紀錄
+    # 背景處理
     def background_analysis():
         try:
             label, score = classify_text(user_input)
@@ -84,8 +80,8 @@ def handle_message(event):
             label, score = "無法判斷", 0.0
         log_emotion(user_id, user_input, label, score)
 
-        # 可選擇將結果傳送給用戶（但需用 push message）
-        summary = f"分析完成：\n這句話是「{label}」情感（信心：{round(score, 2)}）"
+        # 回傳分析結果給使用者（使用 push_message）
+        summary = f"這句話是「{label}」情感（信心：{round(score, 2)}）"
         line_bot_api.push_message(user_id, TextSendMessage(text=summary))
 
     Thread(target=background_analysis).start()

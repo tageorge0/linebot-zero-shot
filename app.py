@@ -47,11 +47,15 @@ def classify_text(text):
             "hypothesis_template": "這句話的情感是 {}。"
         }
     }
-    response = requests.post(HF_API_URL, headers=HF_HEADERS, json=payload)
-    result = response.json()
-    label = result["labels"][0]
-    score = result["scores"][0]
-    return label, score
+    try:
+        response = requests.post(HF_API_URL, headers=HF_HEADERS, json=payload, timeout=5)
+        result = response.json()
+        label = result["labels"][0]
+        score = result["scores"][0]
+        return label, score
+    except Exception as e:
+        print("Hugging Face API 發生錯誤：", e)
+        return "無法判斷", 0.0
 
 # Webhook callback
 @app.route("/callback", methods=['POST'])
@@ -62,8 +66,9 @@ def callback():
     def background_handle():
         try:
             handler.handle(body, signature)
+            print("handler 處理完成")
         except Exception as e:
-            print("Error in handler:", e)
+            print("handler 處理錯誤：", e)
 
     Thread(target=background_handle).start()
 

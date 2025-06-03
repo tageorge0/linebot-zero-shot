@@ -9,6 +9,7 @@ import os
 from datetime import datetime
 from dotenv import load_dotenv
 import requests
+from threading import Thread
 
 # 載入憑證（從 .env 讀取）
 load_dotenv()
@@ -64,23 +65,27 @@ def callback():
         abort(400)
     return 'OK'
 
-# 處理文字訊息
+# 處理文字訊息（非同步）
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_input = event.message.text
     user_id = event.source.user_id
+    reply_token = event.reply_token
 
-    try:
-        label, score = classify_text(user_input)
+    # 先快速回應 LINE（防止超時）
+    line_bot_api.reply_message(reply_token, TextSendMessage(text="訊息收到！正在分析中..."))
+
+    # 背景進行分析與紀錄
+    def background_analysis():
+        try:
+            label, score = classify_text(user_input)
+        except Exception as e:
+            print("分類失敗：", e)
+            label, score = "無法判斷", 0.0
         log_emotion(user_id, user_input, label, score)
-    except Exception as e:
-        label, score = "無法判斷", 0.0
-        print("分類失敗：", e)
 
-    # 你可以選擇是否回覆
-    reply_text = f"這句話的情感判斷為：{label}（信心：{round(score, 2)}）"
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=reply_text)
-    )
-    
+        # 可選擇將結果傳送給用戶（但需用 push message）
+        summary = f"分析完成：\n這句話是「{label}」情感（信心：{round(score, 2)}）"
+        line_bot_api.push_message(user_id, TextSendMessage(text=summary))
+
+    Thread(target=background_analysis).start()

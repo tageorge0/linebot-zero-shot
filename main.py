@@ -7,7 +7,6 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage
 import csv
 import os
 from datetime import datetime
-from dotenv import load_dotenv
 import requests
 from threading import Thread
 
@@ -18,8 +17,6 @@ handler = WebhookHandler(os.getenv("LINE_CHANNEL_SECRET"))
 # Hugging Face API 設定
 # HF_API_URL = "https://api-inference.huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7"
 # HF_HEADERS = {"Authorization": f"Bearer {os.getenv('HF_API_TOKEN')}"}
-
-app = Flask(__name__)
 
 # 紀錄結果到 CSV
 LOG_FILE = "emotion_log.csv"
@@ -52,6 +49,8 @@ def log_emotion(user_id, text, label, score):
 #     except Exception as e:
 #         print("Hugging Face API 發生錯誤：", e)
 #         return "無法判斷", 0.0
+
+app = Flask(__name__)
 
 # Webhook
 @app.route("/")

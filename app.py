@@ -71,6 +71,8 @@ def handle_message(event):
     user_input = event.message.text
     user_id = event.source.user_id
 
+    line_bot_api.reply_message(event.reply_token, TextSendMessage(text="訊息收到！分析中..."))
+
     # 背景處理
     def background_analysis():
         try:

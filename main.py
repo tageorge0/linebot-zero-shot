@@ -27,7 +27,7 @@ from datetime import datetime
 import requests
 from threading import Thread
 
-line_bot_api = Configuration(access_token='LINE_CHANNEL_ACCESS_TOKEN')
+configuration = Configuration(access_token='LINE_CHANNEL_ACCESS_TOKEN')
 handler = WebhookHandler("LINE_CHANNEL_SECRET")
 # Hugging Face API 設定
 HF_API_URL = "https://api-inference.huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7"
@@ -80,13 +80,14 @@ def callback():
     app.logger.info("Request body: " + body)
     try:
         handler.handle(body, signature)
-    except Exception as e:
+    except InvalidSignatureError:
+        app.logger.info("Invalid signature. Please check your channel access token/channel secret.")
         abort(400)
     return 'OK'
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    with ApiClient(line_bot_api) as api_client:
+    with ApiClient(configuration) as api_client:
         line_bot_api = MessagingApi(api_client)
         line_bot_api.reply_message_with_http_info(
             ReplyMessageRequest(

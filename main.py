@@ -53,6 +53,11 @@ def log_emotion(user_id, text, label, score):
 #         print("Hugging Face API 發生錯誤：", e)
 #         return "無法判斷", 0.0
 
+# Webhook
+@app.route("/")
+def hello():
+	return "Hello World"
+
 # Webhook callback
 @app.route("/callback", methods=['POST'])
 def callback():

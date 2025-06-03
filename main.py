@@ -16,8 +16,8 @@ from threading import Thread
 line_bot_api = LineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
 handler = WebhookHandler(os.getenv("LINE_CHANNEL_SECRET"))
 # Hugging Face API 設定
-HF_API_URL = "https://api-inference.huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7"
-HF_HEADERS = {"Authorization": f"Bearer {os.getenv('HF_API_TOKEN')}"}
+# HF_API_URL = "https://api-inference.huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7"
+# HF_HEADERS = {"Authorization": f"Bearer {os.getenv('HF_API_TOKEN')}"}
 
 app = Flask(__name__)
 
@@ -34,24 +34,24 @@ def log_emotion(user_id, text, label, score):
         writer.writerow([datetime.now(), user_id, text, label, round(score, 4)])
 
 # 呼叫 Hugging Face Zero-shot API
-def classify_text(text):
-    labels = ["正面", "負面"]
-    payload = {
-        "inputs": text,
-        "parameters": {
-            "candidate_labels": labels,
-            "hypothesis_template": "這句話的情感是 {}。"
-        }
-    }
-    try:
-        response = requests.post(HF_API_URL, headers=HF_HEADERS, json=payload, timeout=5)
-        result = response.json()
-        label = result["labels"][0]
-        score = result["scores"][0]
-        return label, score
-    except Exception as e:
-        print("Hugging Face API 發生錯誤：", e)
-        return "無法判斷", 0.0
+# def classify_text(text):
+#     labels = ["正面", "負面"]
+#     payload = {
+#         "inputs": text,
+#         "parameters": {
+#             "candidate_labels": labels,
+#             "hypothesis_template": "這句話的情感是 {}。"
+#         }
+#     }
+#     try:
+#         response = requests.post(HF_API_URL, headers=HF_HEADERS, json=payload, timeout=5)
+#         result = response.json()
+#         label = result["labels"][0]
+#         score = result["scores"][0]
+#         return label, score
+#     except Exception as e:
+#         print("Hugging Face API 發生錯誤：", e)
+#         return "無法判斷", 0.0
 
 # Webhook callback
 @app.route("/callback", methods=['POST'])
@@ -77,22 +77,22 @@ def handle_message(event):
     user_input = event.message.text
     user_id = event.source.user_id
 
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text="訊息收到！分析中..."))
+    line_bot_api.reply_message(event.reply_token, TextSendMessage(text="已收到你的訊息！"))
 
-    # 背景處理
-    def background_analysis():
-        try:
-            label, score = classify_text(user_input)
-        except Exception as e:
-            print("分類失敗：", e)
-            label, score = "無法判斷", 0.0
-        log_emotion(user_id, user_input, label, score)
+    # # 背景處理
+    # def background_analysis():
+    #     try:
+    #         label, score = classify_text(user_input)
+    #     except Exception as e:
+    #         print("分類失敗：", e)
+    #         label, score = "無法判斷", 0.0
+    #     log_emotion(user_id, user_input, label, score)
 
-        # 回傳分析結果給使用者（使用 push_message）
-        summary = f"這句話是「{label}」情感（信心：{round(score, 2)}）"
-        line_bot_api.push_message(user_id, TextSendMessage(text=summary))
+    #     # 回傳分析結果給使用者（使用 push_message）
+    #     summary = f"這句話是「{label}」情感（信心：{round(score, 2)}）"
+    #     line_bot_api.push_message(user_id, TextSendMessage(text=summary))
 
-    Thread(target=background_analysis).start()
+    # Thread(target=background_analysis).start()
 
 if __name__ == '__main__':
 	    app.run(debug=True, port=os.getenv("PORT", default=5000))

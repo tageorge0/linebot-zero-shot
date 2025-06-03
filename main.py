@@ -2,18 +2,33 @@
 # Flask + Hugging Face pipeline + log 記錄
 
 from flask import Flask, request, abort
-from linebot import LineBotApi, WebhookHandler
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
+
+from linebot.v3 import (
+    WebhookHandler
+)
+from linebot.v3.exceptions import (
+    InvalidSignatureError
+)
+from linebot.v3.messaging import (
+    Configuration,
+    ApiClient,
+    MessagingApi,
+    ReplyMessageRequest,
+    TextMessage
+)
+from linebot.v3.webhooks import (
+    MessageEvent,
+    TextMessageContent
+)
+
 import csv
 import os
 from datetime import datetime
 import requests
 from threading import Thread
 
-
-
-line_bot_api = LineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
-handler = WebhookHandler(os.getenv("LINE_CHANNEL_SECRET"))
+line_bot_api = Configuration(access_token='LINE_CHANNEL_ACCESS_TOKEN')
+handler = WebhookHandler("LINE_CHANNEL_SECRET")
 # Hugging Face API 設定
 HF_API_URL = "https://api-inference.huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7"
 HF_HEADERS = {"Authorization": f"Bearer {os.getenv('HF_API_TOKEN')}"}
@@ -60,41 +75,25 @@ def hello():
 # Webhook callback
 @app.route("/callback", methods=['POST'])
 def callback():
-    print("收到 LINE Webhook 請求")
     signature = request.headers['X-Line-Signature']
     body = request.get_data(as_text=True)
     app.logger.info("Request body: " + body)
     try:
         handler.handle(body, signature)
-        print("handler 處理完成")
     except Exception as e:
-        print("handler 處理錯誤：", e)
         abort(400)
     return 'OK'
 
-# 處理文字訊息（非同步）
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    print(f"收到使用者輸入：{event.message.text}")
-    user_input = event.message.text
-    user_id = event.source.user_id
-
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text="已收到你的訊息！"))
-
-    # 背景處理
-    def background_analysis():
-        try:
-            label, score = classify_text(user_input)
-        except Exception as e:
-            print("分類失敗：", e)
-            label, score = "無法判斷", 0.0
-        log_emotion(user_id, user_input, label, score)
-
-        # 回傳分析結果給使用者（使用 push_message）
-        summary = f"這句話是「{label}」情感（信心：{round(score, 2)}）"
-        line_bot_api.push_message(user_id, TextSendMessage(text=summary))
-
-    Thread(target=background_analysis).start()
+    with ApiClient(line_bot_api) as api_client:
+        line_bot_api = MessagingApi(api_client)
+        line_bot_api.reply_message_with_http_info(
+            ReplyMessageRequest(
+                reply_token=event.reply_token,
+                messages=[TextMessage(text=event.message.text)]
+            )
+        )
 
 if __name__ == '__main__':
-	    app.run(debug=True, port=os.getenv("PORT", default=5000))
+	    app.run()

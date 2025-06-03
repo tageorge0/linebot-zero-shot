@@ -11,19 +11,15 @@ from dotenv import load_dotenv
 import requests
 from threading import Thread
 
-# 載入憑證（從 .env 讀取）
-load_dotenv()
-CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
-CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
-HF_API_TOKEN = os.getenv("HF_API_TOKEN")
 
+
+line_bot_api = LineBotApi(os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
+handler = WebhookHandler(os.getenv("LINE_CHANNEL_SECRET"))
 # Hugging Face API 設定
 HF_API_URL = "https://api-inference.huggingface.co/models/MoritzLaurer/mDeBERTa-v3-base-mnli-xnli"
-HF_HEADERS = {"Authorization": f"Bearer {HF_API_TOKEN}"}
+HF_HEADERS = {"Authorization": f"Bearer {os.getenv("HF_API_TOKEN")}"}
 
 app = Flask(__name__)
-line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
-handler = WebhookHandler(CHANNEL_SECRET)
 
 # 紀錄結果到 CSV
 LOG_FILE = "emotion_log.csv"

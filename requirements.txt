@@ -4,3 +4,4 @@ requests
 gunicorn==20.0.4
 Jinja2==2.11.3
 MarkupSafe==1.1.1
+itsdangerous==1.1.0

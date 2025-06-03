@@ -1,5 +1,4 @@
 flask
-python-dotenv
-transformers
-torch
 line-bot-sdk
+python-dotenv
+requests

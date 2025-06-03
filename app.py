@@ -58,11 +58,14 @@ def classify_text(text):
 def callback():
     signature = request.headers['X-Line-Signature']
     body = request.get_data(as_text=True)
-    try:
-        handler.handle(body, signature)
-    except Exception as e:
-        print("Error:", e)
-        abort(400)
+    def background_handle():
+        try:
+            handler.handle(body, signature)
+        except Exception as e:
+            print("Error in handler:", e)
+
+    Thread(target=background_handle).start()
+
     return 'OK'
 
 # 處理文字訊息（非同步）

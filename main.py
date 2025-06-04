@@ -30,7 +30,7 @@ app = Flask(__name__)
 configuration = Configuration(access_token=os.getenv("LINE_CHANNEL_ACCESS_TOKEN"))
 handler =  WebhookHandler(os.getenv("LINE_CHANNEL_SECRET"))
 # Hugging Face API 設定
-HF_API_URL = "https://api-inference.huggingface.co/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7"
+HF_API_URL = "https://router.huggingface.co/hf-inference/models/MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7"
 HF_HEADERS = {"Authorization": f"Bearer {os.getenv('HF_API_TOKEN')}"}
 
 # 紀錄結果到 CSV
@@ -51,8 +51,7 @@ def classify_text(text):
     payload = {
         "inputs": text,
         "parameters": {
-            "candidate_labels": labels,
-            "hypothesis_template": "這句話的情感是 {}。"
+            "candidate_labels": labels
         }
     }
     try:

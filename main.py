@@ -85,12 +85,23 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    user_id = event.source.user_id
+    user_text = event.message.text
+
+    # 分析情感
+    label, score = classify_text(user_text)
+    summary = f"這句話是「{label}」"
+
+    # 紀錄 log 到 CSV
+    log_emotion(user_id, user_text, label, score)
+
+    # 回覆使用者
     with ApiClient(configuration) as api_client:
-        line_bot_api = MessagingApi(api_client)
-        line_bot_api.reply_message_with_http_info(
+        messaging_api = MessagingApi(api_client)
+        messaging_api.reply_message(
             ReplyMessageRequest(
                 reply_token=event.reply_token,
-                messages=[TextMessage(text=event.message.text)]
+                messages=[TextMessage(text=summary)]
             )
         )
 

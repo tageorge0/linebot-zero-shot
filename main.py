@@ -85,24 +85,26 @@ def callback():
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
     user_id = event.source.user_id
-    user_text = event.message.text
+    user_text = event.message.text.strip()
 
-    # 分析情感
-    label, score = classify_text(user_text)
-    summary = f"這句話是「{label}」"
+    if not user_text:
+        summary = "請輸入一句話來分析情感喔～"
+    else:
+        label, score = classify_text(user_text)
+        summary = f"這句話是「{label}」情感（信心：{round(score * 100)}%)"
+        log_emotion(user_id, user_text, label, score)
 
-    # 紀錄 log 到 CSV
-    log_emotion(user_id, user_text, label, score)
-
-    # 回覆使用者
     with ApiClient(configuration) as api_client:
         messaging_api = MessagingApi(api_client)
-        messaging_api.reply_message(
-            ReplyMessageRequest(
-                reply_token=event.reply_token,
-                messages=[TextMessage(text=summary)]
+        try:
+            messaging_api.reply_message(
+                ReplyMessageRequest(
+                    reply_token=event.reply_token,
+                    messages=[TextMessage(text=summary)]
+                )
             )
-        )
+        except Exception as e:
+            print("回覆訊息失敗：", e)
 
 if __name__ == '__main__':
 	    app.run(debug=False, host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
